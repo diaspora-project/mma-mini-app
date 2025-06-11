@@ -1,0 +1,6 @@
+[submodule "gravitational_waves"]
+	path = gravitational_wave
+	url = git@github.com:parth7stark/MMA_GravitationalWave.git
+[submodule "radio_wave"]
+	path = radio_wave
+	url = git@github.com:parth7stark/MMA_RadioWave.git

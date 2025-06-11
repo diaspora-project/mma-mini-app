@@ -1,0 +1,70 @@
+networks:
+  shared-net:
+    driver: bridge
+volumes:
+  mma-data:
+  proxystore:
+services:
+  gw-server:
+    build:
+      context: ./gravitational_wave
+      dockerfile: gravitational_wave/docker/Dockerfile-cpu
+    image: mma:latest
+    platform: linux/amd64
+    env_file:
+      - .env
+    networks:
+      - shared-net
+    volumes:
+      - mma-data:/app/MMA_GravitationalWave_Data
+      - proxystore:/app/.proxystore
+      - ./gravitational_wave:/app
+    command:  bash /app/job_scripts/start_server.sh
+    deploy:
+      resources:
+        limits:
+          memory: 24g
+  gw-detector-0:
+    build:
+      context: ./gravitational_wave
+      dockerfile: gravitational_wave/docker/Dockerfile-cpu
+    image: mma:latest
+    platform: linux/amd64
+    environment:
+      - PROXYSTORE_ENDPOINT_NAME=mma-detector-0
+      - CONFIGURATION_FILE=/app/examples/configs/detector0.yaml
+    env_file:
+      - .env
+    networks:
+      - shared-net
+    volumes:
+      - mma-data:/app/MMA_GravitationalWave_Data
+      - proxystore:/app/.proxystore
+      - ./gravitational_wave:/app
+    command:  bash /app/job_scripts/start_detector.sh 
+    deploy:
+      resources:
+        limits:
+          memory: 24g
+  gw-detector-1:
+    build:
+      context: ./gravitational_wave
+      dockerfile: gravitational_wave/docker/Dockerfile-cpu
+    image: mma:latest
+    platform: linux/amd64
+    environment:
+      - PROXYSTORE_ENDPOINT_NAME=mma-detector1
+      - CONFIGURATION_FILE=/app/examples/configs/detector1.yaml
+    env_file:
+      - .env
+    networks:
+      - shared-net
+    volumes:
+      - mma-data:/app/MMA_GravitationalWave_Data
+      - proxystore:/app/.proxystore
+      - ./gravitational_wave:/app
+    command:  bash /app/job_scripts/start_detector.sh
+    deploy:
+      resources:
+        limits:
+          memory: 24g
