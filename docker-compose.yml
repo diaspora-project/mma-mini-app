@@ -4,13 +4,16 @@ networks:
 volumes:
   mma-data:
   proxystore:
+  redpanda-0:
 services:
   gw-server:
     build:
-      context: ./gravitational_wave
-      dockerfile: gravitational_wave/docker/Dockerfile-cpu
+      context: ./
+      dockerfile: docker/Dockerfile-cpu
     image: mma:latest
     platform: linux/amd64
+    environment:
+      - NDETECTORS=2
     env_file:
       - .env
     networks:
@@ -19,6 +22,7 @@ services:
       - mma-data:/app/MMA_GravitationalWave_Data
       - proxystore:/app/.proxystore
       - ./gravitational_wave:/app
+      - /Users/valeriehayot-sasson/postdoc/stream-interface/streaming:/opt/conda/lib/python3.11/site-packages/streaming
     command:  bash /app/job_scripts/start_server.sh
     deploy:
       resources:
@@ -26,13 +30,14 @@ services:
           memory: 24g
   gw-detector-0:
     build:
-      context: ./gravitational_wave
-      dockerfile: gravitational_wave/docker/Dockerfile-cpu
+      context: ./
+      dockerfile: docker/Dockerfile-cpu
     image: mma:latest
     platform: linux/amd64
     environment:
       - PROXYSTORE_ENDPOINT_NAME=mma-detector-0
       - CONFIGURATION_FILE=/app/examples/configs/detector0.yaml
+      - DETECTOR_ID=detector0
     env_file:
       - .env
     networks:
@@ -41,6 +46,7 @@ services:
       - mma-data:/app/MMA_GravitationalWave_Data
       - proxystore:/app/.proxystore
       - ./gravitational_wave:/app
+      - /Users/valeriehayot-sasson/postdoc/stream-interface/streaming:/opt/conda/lib/python3.11/site-packages/streaming
     command:  bash /app/job_scripts/start_detector.sh 
     deploy:
       resources:
@@ -48,13 +54,14 @@ services:
           memory: 24g
   gw-detector-1:
     build:
-      context: ./gravitational_wave
-      dockerfile: gravitational_wave/docker/Dockerfile-cpu
+      context: ./
+      dockerfile: docker/Dockerfile-cpu
     image: mma:latest
     platform: linux/amd64
     environment:
       - PROXYSTORE_ENDPOINT_NAME=mma-detector1
       - CONFIGURATION_FILE=/app/examples/configs/detector1.yaml
+      - DETECTOR_ID=detector1
     env_file:
       - .env
     networks:
@@ -63,8 +70,63 @@ services:
       - mma-data:/app/MMA_GravitationalWave_Data
       - proxystore:/app/.proxystore
       - ./gravitational_wave:/app
+      - /Users/valeriehayot-sasson/postdoc/stream-interface/streaming:/opt/conda/lib/python3.11/site-packages/streaming
     command:  bash /app/job_scripts/start_detector.sh
     deploy:
       resources:
         limits:
           memory: 24g
+  # kafka:
+  #   image: apache/kafka:latest
+  #   hostname: broker
+  #   container_name: broker
+  #   networks:
+  #     - shared-net
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9094
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  #     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #     KAFKA_PROCESS_ROLES: broker,controller
+  #     KAFKA_NODE_ID: 1
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+  #     KAFKA_LISTENERS: PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9094
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  #     KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      
+  #   ports:
+  #     - 9094:9094
+  #   working_dir: /opt/kafka/bin/
+  #   post_start:
+  #     - command: ./kafka-topics.sh --create --topic MMA_GW_Events_shared --bootstrap-server broker:29092
+  # redpanda:
+  #   command:
+  #     - redpanda
+  #     - start
+  #     - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+  #     - --advertise-kafka-addr internal://redpanda-0:9092,external://localhost:19092
+  #     - --pandaproxy-addr internal://0.0.0.0:8082,external://0.0.0.0:18082
+  #     - --advertise-pandaproxy-addr internal://redpanda-0:8082,external://localhost:18082
+  #     - --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
+  #     - --rpc-addr redpanda-0:33145
+  #     - --advertise-rpc-addr redpanda-0:33145
+  #     - --mode dev-container
+  #     - --smp 1
+  #     - --default-log-level=info
+  #   image: docker.redpanda.com/redpandadata/redpanda:v25.1.5
+  #   container_name: redpanda-0
+  #   volumes:
+  #     - redpanda-0:/var/lib/redpanda/data
+  #   networks:
+  #     - shared-net
+  #   ports:
+  #     - 18081:18081
+  #     - 18082:18082
+  #     - 19092:19092
+  #     - 19644:9644
+  #   post_start:
+  #     - command: sleep 10 && rpk topic create MMA_GW_Events_shared 

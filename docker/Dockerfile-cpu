@@ -21,21 +21,23 @@ ENV PATH="/opt/conda/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:$LD_LIBRARY_PATH"
 
 # Install conda packages
-RUN conda install -qy conda==24.11.1 pip python=3.10 \
+RUN conda install -qy conda==24.11.1 pip python=3.11 \
+    && conda install -c anaconda git \
+    && conda install libffi==3.4.2 \
     && conda install --channel conda-forge lalsuite \
-    && conda clean --all --force-pkgs-dirs --yes
+    && conda clean --all --force-pkgs-dirs --yes 
 
 ENV PATH="/opt/conda/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:$LD_LIBRARY_PATH"
 
-COPY . /app
+COPY ./gravitational_wave /app
 WORKDIR /app
 
 # Install dependencies
 RUN . activate base && cd /app \ 
     && pip install -e ".[examples]" \
     && pip install -r requirements.txt \
-    && pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 gdown
+    && pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 gdown git+https://github.com/diaspora-project/stream-interface.git
 
 RUN gdown 1zuNzPzHGlk0e5cUCDDPkZjZ5v81J-rhS \
     && unzip MMA_GravitationalWave_Data.zip \
