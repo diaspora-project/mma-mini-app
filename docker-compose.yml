@@ -22,7 +22,6 @@ services:
       - mma-data:/app/MMA_GravitationalWave_Data
       - proxystore:/app/.proxystore
       - ./gravitational_wave:/app
-      - /Users/valeriehayot-sasson/postdoc/stream-interface/streaming:/opt/conda/lib/python3.11/site-packages/streaming
     command:  bash /app/job_scripts/start_server.sh
     deploy:
       resources:
@@ -46,7 +45,6 @@ services:
       - mma-data:/app/MMA_GravitationalWave_Data
       - proxystore:/app/.proxystore
       - ./gravitational_wave:/app
-      - /Users/valeriehayot-sasson/postdoc/stream-interface/streaming:/opt/conda/lib/python3.11/site-packages/streaming
     command:  bash /app/job_scripts/start_detector.sh 
     deploy:
       resources:
@@ -70,7 +68,6 @@ services:
       - mma-data:/app/MMA_GravitationalWave_Data
       - proxystore:/app/.proxystore
       - ./gravitational_wave:/app
-      - /Users/valeriehayot-sasson/postdoc/stream-interface/streaming:/opt/conda/lib/python3.11/site-packages/streaming
     command:  bash /app/job_scripts/start_detector.sh
     deploy:
       resources:
