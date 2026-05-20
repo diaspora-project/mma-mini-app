@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:13.2.0-cudnn-runtime-ubuntu24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -20,11 +20,18 @@ RUN mkdir -p /opt/conda \
 ENV PATH="/opt/conda/bin:$PATH"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:$LD_LIBRARY_PATH"
 
+# Get mochi build
+RUN wget https://github.com/mochi-hpc/mochi-conda-packages/releases/download/2026-03-17/mochi-conda-channel-2026-03-17-linux-64-py3.12.tar.gz \
+    && mkdir /mochi-conda \
+    && tar -xzf mochi-conda-channel-2026-03-17-linux-64-py3.12.tar.gz -C /mochi-conda
+
+
 # Install conda packages
-RUN conda install -qy conda==24.11.1 pip python=3.11 \
+RUN conda install -qy conda==24.11.1 pip python=3.12 \
     && conda install -c anaconda git \
     && conda install libffi==3.4.2 \
     && conda install --channel conda-forge lalsuite \
+    && conda install --channel /mochi-conda diaspora-stream-api diaspora-stream-octopus \
     && conda clean --all --force-pkgs-dirs --yes 
 
 ENV PATH="/opt/conda/bin:$PATH"
@@ -37,7 +44,7 @@ WORKDIR /app
 RUN . activate base && cd /app \ 
     && pip install -e ".[examples]" \
     && pip install -r requirements.txt \
-    && pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 gdown git+https://github.com/diaspora-project/stream-interface.git
+    && pip install torch torchvision torchaudio gdown git+https://github.com/diaspora-project/stream-interface.git
 
 RUN gdown 1zuNzPzHGlk0e5cUCDDPkZjZ5v81J-rhS \
     && unzip MMA_GravitationalWave_Data.zip \
