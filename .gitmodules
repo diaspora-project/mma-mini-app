@@ -5,3 +5,4 @@
 [submodule "radio_wave"]
 	path = radio_wave
 	url = git@github.com:parth7stark/MMA_RadioWave.git
+	branch = mini-app
